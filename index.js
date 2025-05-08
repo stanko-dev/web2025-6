@@ -13,6 +13,9 @@ const { host, port, cache } = program.opts();
 
 const app = express();
 
+// middleware to parse text body for put requests
+app.use(express.text());
+
 // ensure cache directory exists
 const ensureCacheDir = async () => {
   try {
@@ -30,6 +33,39 @@ app.get('/notes/:noteName', async (req, res) => {
   try {
     const data = await fs.readFile(notePath, 'utf8');
     res.status(200).send(data);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      res.status(404).send('Not Found');
+    } else {
+      res.status(500).send('Server Error');
+    }
+  }
+});
+
+// update note
+app.put('/notes/:noteName', async (req, res) => {
+  const noteName = req.params.noteName;
+  const notePath = path.join(cache, `${noteName}.txt`);
+  try {
+    await fs.access(notePath); // check if note exists
+    await fs.writeFile(notePath, req.body, 'utf8');
+    res.status(200).send('Updated');
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      res.status(404).send('Not Found');
+    } else {
+      res.status(500).send('Server Error');
+    }
+  }
+});
+
+// delete note
+app.delete('/notes/:noteName', async (req, res) => {
+  const noteName = req.params.noteName;
+  const notePath = path.join(cache, `${noteName}.txt`);
+  try {
+    await fs.unlink(notePath);
+    res.status(200).send('Deleted');
   } catch (err) {
     if (err.code === 'ENOENT') {
       res.status(404).send('Not Found');
