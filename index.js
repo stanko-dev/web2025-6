@@ -1,19 +1,73 @@
 const { program } = require('commander');
 const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
 
 program
-  .requiredOption('-h, --host <host>', 'Server host')
-  .requiredOption('-p, --port <port>', 'Server port')
-  .requiredOption('-c, --cache <cache>', 'Cache directory')
+  .requiredOption('-h, --host <host>', 'server host')
+  .requiredOption('-p, --port <port>', 'server port')
+  .requiredOption('-c, --cache <cache>', 'cache directory')
   .parse(process.argv);
 
 const { host, port, cache } = program.opts();
 
 const app = express();
 
-const startServer = () => {
+// ensure cache directory exists
+const ensureCacheDir = async () => {
+  try {
+    await fs.mkdir(cache, { recursive: true });
+  } catch (err) {
+    console.error('error creating cache directory:', err);
+    process.exit(1);
+  }
+};
+
+// get note by name
+app.get('/notes/:noteName', async (req, res) => {
+  const noteName = req.params.noteName;
+  const notePath = path.join(cache, `${noteName}.txt`);
+  try {
+    const data = await fs.readFile(notePath, 'utf8');
+    res.status(200).send(data);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      res.status(404).send('Not Found');
+    } else {
+      res.status(500).send('Server Error');
+    }
+  }
+});
+
+// get list of all notes
+app.get('/notes', async (req, res) => {
+  try {
+    const files = await fs.readdir(cache);
+    const notes = await Promise.all(
+      files
+        .filter(file => file.endsWith('.txt'))
+        .map(async file => {
+          const name = file.replace('.txt', '');
+          const text = await fs.readFile(path.join(cache, file), 'utf8');
+          return { name, text };
+        })
+    );
+    res.status(200).json(notes);
+  } catch (err) {
+    res.status(500).send('Server Error');
+  }
+});
+
+// serve upload form
+app.get('/UploadForm.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'UploadForm.html'));
+});
+
+// start server
+const startServer = async () => {
+  await ensureCacheDir();
   app.listen(port, host, () => {
-    console.log(`Server running at http://${host}:${port}/`);
+    console.log(`server running at http://${host}:${port}/`);
   });
 };
 
