@@ -2,6 +2,7 @@ const { program } = require('commander');
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
+const multer = require('multer');
 
 program
   .requiredOption('-h, --host <host>', 'server host')
@@ -15,6 +16,10 @@ const app = express();
 
 // middleware to parse text body for put requests
 app.use(express.text());
+
+// setup multer for form-data
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // ensure cache directory exists
 const ensureCacheDir = async () => {
@@ -97,6 +102,25 @@ app.get('/notes', async (req, res) => {
 // serve upload form
 app.get('/UploadForm.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'UploadForm.html'));
+});
+
+// create new note via form
+app.post('/write', upload.fields([{ name: 'note_name' }, { name: 'note' }]), async (req, res) => {
+  const noteName = req.body.note_name;
+  const noteText = req.body.note;
+  const notePath = path.join(cache, `${noteName}.txt`);
+
+  try {
+    await fs.access(notePath); // check if note exists
+    res.status(400).send('Note already exists');
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      await fs.writeFile(notePath, noteText, 'utf8');
+      res.status(201).send('Created');
+    } else {
+      res.status(500).send('Server Error');
+    }
+  }
 });
 
 // start server
