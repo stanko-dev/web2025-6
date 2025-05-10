@@ -1,6 +1,12 @@
 # Web2025-6: Notes Service
 
-![Node.js](https://img.shields.io/badge/Node.js-v22.14.0-green)
+![Node.js](https://img.shields.io/badge/Node.js-v22.14.0-green)  
+![Express.js](https://img.shields.io/badge/Express.js-v4.18.2-blue)  
+![Nodemon](https://img.shields.io/badge/Nodemon-v3.1.4-orange)  
+![Swagger](https://img.shields.io/badge/Swagger-v4.15.5-brightgreen)  
+![Postman](https://img.shields.io/badge/Postman-Tested-red)  
+![Commander.js](https://img.shields.io/badge/Commander.js-v12.1.0-purple)  
+![Status](https://img.shields.io/badge/Status-Completed-success)
 
 A simple Node.js-based notes management service built with Express.js for Lab #6.
 
