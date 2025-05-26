@@ -226,6 +226,42 @@ app.post('/write', upload.fields([{ name: 'note_name' }, { name: 'note' }]), asy
   }
 });
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: welcome page
+ *     responses:
+ *       200:
+ *         description: returns welcome message
+ */
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Notes Service</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+          }
+          h1 {
+            color: #333;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>This is simple notes service</h1>
+        <p>Welcome to our notes management system!</p>
+        <p>Visit <a href="/docs">/docs</a> for API documentation</p>
+      </body>
+    </html>
+  `);
+});
+
 // start server
 const startServer = async () => {
   await ensureCacheDir();
